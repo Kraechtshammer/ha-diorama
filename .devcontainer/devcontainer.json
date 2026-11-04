@@ -1,0 +1,82 @@
+// Dev container for ha-diorama: Node 24 and pnpm (as CI uses), the editor
+// extensions the repo's tooling expects, and Claude Code. Nothing needs to be
+// installed on the host besides Docker and VS Code with the Dev Containers
+// extension. See README.md next to this file.
+{
+  "name": "ha-diorama",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+
+  "features": {
+    // Installs the `claude` CLI for the terminal (the VS Code extension
+    // bundles its own copy for the chat panel).
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+
+  // Makes sure the untracked token file exists before the container starts,
+  // so `--env-file` below never fails. Runs on the host through Docker, so it
+  // works the same on Windows, macOS and Linux without any host tools.
+  "initializeCommand": [
+    "docker", "run", "--rm",
+    "-v", "${localWorkspaceFolder}/.devcontainer:/d",
+    "busybox", "sh", "-c",
+    "[ -f /d/claude.env.local ] || cp /d/claude.env.example /d/claude.env.local"
+  ],
+
+  // Puts the token from claude.env.local into the container's environment,
+  // where both the `claude` CLI and the VS Code extension pick it up.
+  // Changing the file needs "Dev Containers: Rebuild Container" to apply.
+  "runArgs": ["--env-file", "${localWorkspaceFolder}/.devcontainer/claude.env.local"],
+
+  "mounts": [
+    // node_modules on a Linux volume: much faster than the Windows bind mount,
+    // and keeps Linux binaries out of the host folder.
+    "source=ha-diorama-node_modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume",
+    // Claude Code settings, history and login survive container rebuilds.
+    "source=ha-diorama-claude-${devcontainerId},target=/home/node/.claude,type=volume"
+  ],
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
+  },
+
+  "remoteUser": "node",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite dev server",
+      // Home Assistant loads http://localhost:5173/src/dev/entry.ts, so the
+      // port must be the same on the host.
+      "requireLocalPort": true,
+      "onAutoForward": "notify"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "esbenp.prettier-vscode",
+        "oxc.oxc-vscode",
+        "bradlc.vscode-tailwindcss",
+        "redhat.vscode-yaml",
+        "github.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "usernamehw.errorlens"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "prettier.requireConfig": true,
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "tailwindCSS.experimental.configFile": "src/index.css",
+        "tailwindCSS.classFunctions": ["cn", "cva"],
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}

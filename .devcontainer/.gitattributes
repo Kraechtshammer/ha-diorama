@@ -1,0 +1,3 @@
+# Files read inside the Linux container must keep LF line endings,
+# even when checked out on Windows.
+* text=auto eol=lf
