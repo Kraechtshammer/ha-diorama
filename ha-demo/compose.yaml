@@ -4,17 +4,20 @@ services:
   homeassistant:
     container_name: diorama-demo
     image: ghcr.io/home-assistant/home-assistant:stable
+    # Only on this machine: the demo logs anyone in without a password.
     ports:
-      - "8124:8123"
+      - "127.0.0.1:8124:8123"
     volumes:
       - ./config:/config
       - ../dist:/config/www/diorama
       - ../themes:/config/themes
       - ./seed:/seed:ro
     # The backyard camera can only be set up from the UI, so on the first
-    # start its config entry is copied in before Home Assistant runs.
+    # start its config entry is copied in before Home Assistant runs. Then
+    # seed/editable.py adds an editable copy of the dashboard, and
+    # seed/onboard.py waits in the background to skip the onboarding.
     entrypoint:
       - sh
       - -c
-      - mkdir -p /config/.storage && { [ -e /config/.storage/core.config_entries ] || cp /seed/core.config_entries /config/.storage/; } && exec /init
+      - mkdir -p /config/.storage && { [ -e /config/.storage/core.config_entries ] || cp /seed/core.config_entries /config/.storage/; } && python3 /seed/editable.py && { python3 /seed/onboard.py & } && exec /init
     restart: unless-stopped

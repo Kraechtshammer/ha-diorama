@@ -6,6 +6,18 @@ demo:
 
 # Real looking names for the media players the flat uses.
 homeassistant:
+  # No login page: a browser on this machine is logged in as the demo user
+  # straight away. The port is only open to this machine, see compose.yaml.
+  # Requests come in through Docker's network, hence 172.16.0.0/12. The
+  # password login stays as a fallback, user demo with password demo.
+  auth_providers:
+    - type: trusted_networks
+      trusted_networks:
+        - 127.0.0.1
+        - ::1
+        - 172.16.0.0/12
+      allow_bypass_login: true
+    - type: homeassistant
   customize:
     media_player.living_room:
       friendly_name: Living room TV
