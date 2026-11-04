@@ -2,8 +2,9 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, type Plugin } from 'vite'
-import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
 
 // dist is bind mounted into Home Assistant, which serves card.js to the
 // browser while a build is writing it. A browser that fetches halfway
@@ -42,9 +43,35 @@ function atomicOutput(): Plugin {
   }
 }
 
+// card.js is about 5 MB. Home Assistant serves a card.js.br or card.js.gz
+// lying next to it to a browser that accepts it, which brings the download
+// down to about 1.3 MB. Home Assistant does not compress /local files on its
+// own. The best brotli takes seconds, so watch mode settles for a quicker
+// one. Both land in the staging folder and move into place with card.js.
+function precompress(): Plugin {
+  let watching = false
+  return {
+    name: 'precompress',
+    apply: 'build',
+    buildStart() {
+      watching = this.meta.watchMode
+    },
+    writeBundle(options, bundle) {
+      for (const name of Object.keys(bundle)) {
+        if (!name.endsWith('.js')) continue
+        const file = join(options.dir!, name)
+        const content = readFileSync(file)
+        const quality = watching ? 9 : constants.BROTLI_MAX_QUALITY
+        writeFileSync(`${file}.br`, brotliCompressSync(content, { params: { [constants.BROTLI_PARAM_QUALITY]: quality } }))
+        writeFileSync(`${file}.gz`, gzipSync(content, { level: 9 }))
+      }
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [tailwindcss(), react(), babel({ presets: [reactCompilerPreset()] }), atomicOutput()],
+  plugins: [tailwindcss(), react(), babel({ presets: [reactCompilerPreset()] }), precompress(), atomicOutput()],
   define: { 'process.env.NODE_ENV': '"production"', __CARD_VERSION__: JSON.stringify(version) },
   server: {
     port: 5173,
@@ -59,7 +86,10 @@ export default defineConfig({
       formats: ['es'],
       fileName: () => 'card.js',
     },
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    // Library mode leaves the whitespace in an ES module so that bundlers
+    // importing it can still tree shake it. Nothing imports card.js but the
+    // browser, so it is minified all the way, about a fifth smaller.
+    rollupOptions: { output: { codeSplitting: false, minify: true } },
     // Fonts are base64-inlined into the CSS so everything ships in card.js.
     assetsInlineLimit: Infinity,
     copyPublicDir: false,

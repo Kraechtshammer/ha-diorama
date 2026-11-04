@@ -63,7 +63,7 @@ docker compose up -d
 docker compose exec homeassistant ls /config/www/diorama
 ```
 
-You should see `card.js`. If Home Assistant was started before `/config/www` existed, restart it once so it serves `/local/`.
+You should see `card.js`, with `card.js.br` and `card.js.gz` next to it. Home Assistant does not compress what it serves from `/local`, but it sends one of these compressed copies to a browser that accepts it, about 1.3 MB instead of 5. If Home Assistant was started before `/config/www` existed, restart it once so it serves `/local/`.
 
 Register `/local/diorama/card.js?v=1` as a JavaScript module resource. Bump `?v=` after each new build so browsers pick it up. `pnpm watch` rebuilds `dist/card.js` on change if you want to test the bundle continuously. The build writes into a staging folder inside `dist` and renames the file into place, so Home Assistant never serves a half written `card.js`: a browser that fetched one mid write throws on load and then reports that the custom element does not exist until the page is reloaded.
 
@@ -315,7 +315,7 @@ Home Assistant and the browser cache resources aggressively. After a rebuild, ha
 ## Scripts
 
 - `pnpm dev`: Vite dev server with live reload, see above
-- `pnpm build`: typecheck and build `dist/card.js` once
+- `pnpm build`: typecheck and build `dist/card.js` once, with its compressed copies `card.js.br` and `card.js.gz`
 - `pnpm watch`: rebuild `dist/card.js` on change
 - `pnpm lint`: run oxlint
 - `pnpm showroom`: write `showroom.yaml`, a complete card with every decoration and each of its styles at their defaults, to paste into a dashboard
