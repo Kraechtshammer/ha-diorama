@@ -9,6 +9,10 @@ sudo chown -R node:node node_modules "${CLAUDE_CONFIG_DIR}"
 sudo corepack enable
 corepack install
 
+# node_modules is its own volume, so pnpm would otherwise put its store in the
+# repo folder, as thousands of untracked files.
+pnpm config set store-dir "${HOME}/.local/share/pnpm/store"
+
 pnpm install --config.confirmModulesPurge=false
 
 # Report whether Claude Code will find a token.
