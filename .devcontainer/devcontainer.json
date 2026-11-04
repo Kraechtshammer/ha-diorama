@@ -9,7 +9,12 @@
   "features": {
     // Installs the `claude` CLI for the terminal (the VS Code extension
     // bundles its own copy for the chat panel).
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    // A Docker daemon of its own inside the container, so the demo Home
+    // Assistant (ha-demo) starts from VS Code's tasks with its relative
+    // bind mounts working as they are. Its images live on a volume and
+    // survive rebuilds.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
 
   // Makes sure the untracked token file exists before the container starts,
@@ -43,8 +48,12 @@
   "remoteUser": "node",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
-  "forwardPorts": [5173],
+  "forwardPorts": [5173, 8124],
   "portsAttributes": {
+    "8124": {
+      "label": "Demo Home Assistant",
+      "onAutoForward": "notify"
+    },
     "5173": {
       "label": "Vite dev server",
       // Home Assistant loads http://localhost:5173/src/dev/entry.ts, so the

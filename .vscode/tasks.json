@@ -1,0 +1,87 @@
+// Tasks for running the card in the demo Home Assistant (ha-demo).
+// "Demo: start" is the default build task (Ctrl+Shift+B) and also runs when
+// the folder opens, once VS Code is allowed to run automatic tasks.
+// Docker comes from the dev container's docker-in-docker feature.
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Demo: start",
+      "detail": "Build the card, start Home Assistant on port 8124, then rebuild on every change",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Card: build", "Demo: up", "Card: watch"],
+      "group": { "kind": "build", "isDefault": true },
+      "runOptions": { "runOn": "folderOpen" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Card: build",
+      "type": "shell",
+      "command": "pnpm build",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent", "panel": "shared", "group": "demo" }
+    },
+    {
+      "label": "Demo: up",
+      "detail": "Start Home Assistant and wait until it answers",
+      "type": "shell",
+      // dockerd starts with the container and may still be coming up when
+      // the folder opens, so wait for it first. Home Assistant takes a minute
+      // or two on its first start.
+      "command": "until docker info >/dev/null 2>&1; do echo 'Waiting for Docker...'; sleep 2; done && docker compose -f ha-demo/compose.yaml up -d && echo 'Waiting for Home Assistant...' && for i in $(seq 180); do curl -fs -o /dev/null http://localhost:8124 && break; sleep 2; done && echo && echo 'Home Assistant is up: http://localhost:8124 (Diorama is in the sidebar)'",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "group": "demo" }
+    },
+    {
+      "label": "Card: watch",
+      "detail": "Rebuild dist/card.js on every change. Reload the page with the cache cleared to see it",
+      "type": "shell",
+      "command": "pnpm watch",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^x^" },
+        "background": {
+          "activeBegins": true,
+          "beginsPattern": "build started",
+          "endsPattern": "built in \\d+ms"
+        }
+      },
+      "presentation": { "reveal": "silent", "panel": "dedicated", "group": "demo" }
+    },
+    {
+      "label": "Demo: stop",
+      "type": "shell",
+      "command": "docker compose -f ha-demo/compose.yaml down",
+      "problemMatcher": []
+    },
+    {
+      "label": "Demo: logs",
+      "detail": "Follow Home Assistant's log",
+      "type": "shell",
+      "command": "docker compose -f ha-demo/compose.yaml logs -f --tail 100",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Demo: reset",
+      "detail": "Stop Home Assistant and throw away everything it wrote, the owner account included",
+      "type": "shell",
+      // Home Assistant writes its files as root, hence sudo.
+      "command": "docker compose -f ha-demo/compose.yaml down && sudo git -c safe.directory='*' clean -fdX ha-demo/config",
+      "problemMatcher": []
+    },
+    {
+      "label": "Card: dev server",
+      "detail": "Vite on port 5173 for the dev pages, like http://localhost:5173/src/dev/tiles.html",
+      "type": "shell",
+      "command": "pnpm dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^x^" },
+        "background": { "activeBegins": true, "beginsPattern": "VITE", "endsPattern": "Local:" }
+      }
+    }
+  ]
+}

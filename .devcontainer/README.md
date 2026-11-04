@@ -32,6 +32,12 @@ Check it with `git check-ignore -v .devcontainer/claude.env.local`.
   on your machine, so Home Assistant can load
   `http://localhost:5173/src/dev/entry.ts` as described in `docs/DEVELOPMENT.md`.
 - `pnpm build` writes `dist/` into the repo folder on your disk.
-- The demo Home Assistant (`ha-demo`) runs from a terminal on your host,
-  not from inside the container: `cd ha-demo` and `docker compose up -d`.
-  Then open http://localhost:8124.
+- The demo Home Assistant (`ha-demo`) runs inside the container, on a Docker
+  daemon of its own. Press Ctrl+Shift+B (task **Demo: start**): it builds the
+  card, starts Home Assistant on http://localhost:8124 and then rebuilds
+  `dist/card.js` on every save. Reload the page with the cache cleared to see
+  a change. The task also runs when the folder opens, after you allow
+  automatic tasks once when VS Code asks.
+- Other tasks (Terminal, Run Task): **Demo: stop**, **Demo: logs**,
+  **Demo: reset** (throws away the owner account and everything Home
+  Assistant wrote) and **Card: dev server** for the dev pages on port 5173.
