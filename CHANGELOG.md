@@ -9,6 +9,8 @@ moves that section under the new version and uses it as the release notes.
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-11-04
+
 ### Added
 
 - A piano in three styles, a desk lamp in two, three more ceiling lights, and a switch to hang the sideboard on the wall at any height.
@@ -714,7 +716,8 @@ moves that section under the new version and uses it as the release notes.
 
 ### Changed
 
-[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.29...HEAD
+[Unreleased]: https://github.com/CarlesRojas/ha-diorama/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.29...v1.9.0
 [1.8.29]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.28...v1.8.29
 [1.8.28]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.27...v1.8.28
 [1.8.27]: https://github.com/CarlesRojas/ha-diorama/compare/v1.8.26...v1.8.27
