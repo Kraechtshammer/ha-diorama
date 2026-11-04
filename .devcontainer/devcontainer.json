@@ -62,6 +62,9 @@
         "oxc.oxc-vscode",
         "bradlc.vscode-tailwindcss",
         "redhat.vscode-yaml",
+        "yoavbls.pretty-ts-errors",
+        "timonwong.shellcheck",
+        "github.vscode-github-actions",
         "github.vscode-pull-request-github",
         "eamodio.gitlens",
         "usernamehw.errorlens"
@@ -75,6 +78,17 @@
         "typescript.enablePromptUseWorkspaceTsdk": true,
         "tailwindCSS.experimental.configFile": "src/index.css",
         "tailwindCSS.classFunctions": ["cn", "cva"],
+        // Home Assistant's own YAML tags, used in ha-demo/config.
+        "yaml.customTags": [
+          "!include scalar",
+          "!include_dir_list scalar",
+          "!include_dir_named scalar",
+          "!include_dir_merge_list scalar",
+          "!include_dir_merge_named scalar",
+          "!secret scalar",
+          "!env_var scalar",
+          "!input scalar"
+        ],
         "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
